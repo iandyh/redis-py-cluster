@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+
+import socket
 from socket import gethostbyaddr
 
+from redis.exceptions import ConnectionError, TimeoutError
 # rediscluster imports
 from .exceptions import (
     RedisClusterException, ClusterDownError
@@ -85,7 +88,8 @@ def clusterdown_wrapper(func):
         for _ in range(0, 3):
             try:
                 return func(*args, **kwargs)
-            except ClusterDownError:
+            #except (ClusterDownError, ConnectionError) as e:
+            except (ClusterDownError, ConnectionError, TimeoutError, socket.timeout, socket.error):
                 # Try again with the new cluster setup. All other errors
                 # should be raised.
                 pass

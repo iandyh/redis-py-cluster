@@ -3,6 +3,7 @@
 # python std lib
 import datetime
 import random
+import socket
 import string
 import time
 
@@ -273,8 +274,11 @@ class StrictRedisCluster(StrictRedis):
             try:
                 r.send_command(*args)
                 res[node["name"]] = self.parse_response(r, command, **kwargs)
-            finally:
                 self.connection_pool.release(r)
+            except (ConnectionError, TimeoutError, socket.timeout,
+                   socket.error) as e:
+                self.connection_pool.reset()
+                raise e
 
         return self._merge_result(command, res)
 
